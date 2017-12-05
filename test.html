@@ -1,0 +1,40 @@
+ <html>
+  <head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+		['Temps', 'Vitesse'],
+		[0,0],
+		<?lua (function()
+				txt = ""
+				for k, result in pairs(pcchrono.results) do
+					if result.on and result.off then
+						txt = txt .. "[" .. (result.on + result.off)/2 .. ","
+						txt = txt .. pcchrono.aimant.diam * 1000 / (result.off - result.on) .."],"
+					end
+				end
+				return txt
+			end)()
+		?>
+        ]);
+
+        var options = {
+          title: 'Pc-chrono Results',
+          curveType: 'function',
+          legend: { position: 'bottom' }
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+
+        chart.draw(data, options);
+      }
+    </script>
+  </head>
+  <body>
+    <div id="curve_chart" style="width: 900px; height: 500px"></div>
+  </body>
+</html>

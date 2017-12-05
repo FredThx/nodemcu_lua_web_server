@@ -1,0 +1,68 @@
+<?lua server.read_file("head.html")?>
+<article>
+	<p>
+		<a href="?action=aimant_change"><button><?lua 
+				(function ()
+					if (gpio.read(1)==gpio.HIGH) then
+						return "Aimant Activé"
+					else
+						return "Aimant Off"
+					end
+				end)()?></button></a>
+		<a href="?action=go"><button <?lua get_go_disable() ?>>Go!</button></a>
+	</p>
+	<p>
+		<div <?lua get_result_disable() ?>>
+			<p>
+				<div id="Graphe_resultats" style="width: 900px; height: 500px"></div>
+			</p>
+			<p>
+				<?lua  get_results()?>
+			</p>
+			<p>
+				<a href="?action=raz"><button >RAZ</button></a>
+			</p>
+		</div>
+	</p>
+</p>
+</article>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+	<script type="text/javascript">
+	  google.charts.load('current', {'packages':['corechart'],'language': 'fr'});
+	  google.charts.setOnLoadCallback(drawChart);
+
+	  function drawChart() {
+		var data = google.visualization.arrayToDataTable([
+		['Temps', 'Vitesse'],
+		[0,0],
+		<?lua (function()
+				txt = ""
+				for k, result in pairs(pcchrono.results) do
+					if result.on and result.off then
+						txt = txt .. "[" .. (result.on + result.off)/2 .. ","
+						txt = txt .. pcchrono.aimant.diam * 1000 / (result.off - result.on) .."],"
+					end
+				end
+				return txt
+			end)()
+		?>
+        ]);
+
+        var options = {
+			curveType: 'function',
+			//legend: { position: 'bottom' },
+			backgroundColor:'#dd8',
+			vAxis: {
+				title: 'Vitesse (m/s)'
+			},
+			hAxis: {
+				title: 'Temps (µs)'
+			},
+		};
+
+		var chart = new google.visualization.LineChart(document.getElementById('Graphe_resultats'));
+
+		chart.draw(data, options);
+	  }
+</script>
+<?lua server.read_file("foot.html")?>

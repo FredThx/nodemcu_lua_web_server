@@ -1,0 +1,25 @@
+<?lua server.read_file("head.html")?>
+<article>
+	<h1>Paramètres wifi</h1>
+	<form method="post" action="params.html" autocomplete = "on">
+		<p>Mode de fonctionnement : 
+			<input type="radio" name="wifi_mode" id="mode_sta" value="sta"<?lua get_checked("sta")?>/> <label for "mode_sta">Mode station</label>
+			<input type="radio" name="wifi_mode" id="mode_ap" value="ap"<?lua get_checked("ap")?>/> <label for "mode_ap">Mode Point d'accés</label>
+		</p>
+		<p>
+			<label for="wifi_ssid">SSID</label>
+			<input type = "text" id="wifi_ssid" name="wifi_ssid" value = "<?lua get_param("wifi_ssid")?>"/>
+		</p>
+		<p>
+			<label for="wifi_pwd">password</label>
+			<input type = "password" id="wifi_pwd" name="wifi_pwd" value = "<?lua get_param("wifi_pwd")?>" pattern = "%w{0,8-64}"/>
+		</p>
+		<p>
+			<input type="submit" value="Envoyer" />
+		</p>
+		<p>
+			Dévérouiller mode résultats : auto ou avec Code .
+		</p>
+	</form>
+</article>
+<?lua server.read_file("foot.html")?>
