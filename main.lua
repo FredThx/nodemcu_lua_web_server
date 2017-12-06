@@ -22,7 +22,8 @@ if file.open("pcchrono.cfg", "r") then
 end
 if not pcchrono then
 	pcchrono = {}
-	pcchrono.aimant = {pin=1, diam = 1}
+	pcchrono.aimant = {pin=1}
+	pcchrono.bille = {diam = 17, masse = 33}
 	pcchrono.fourches = {}
 	pcchrono.fourches[1] = {pin = 2, d = 2}
 	pcchrono.fourches[2] = {pin = 3, d = 3}

@@ -20,7 +20,7 @@ body {
     display: flex;
 }
 nav,aside {
-    width: 10em;
+    width: 17em;
 }
 
 article {
@@ -81,3 +81,4 @@ article {
 footer {
     background: #feb;
 }
+

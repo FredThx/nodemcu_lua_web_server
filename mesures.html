@@ -1,17 +1,6 @@
 <?lua server.read_file("head.html")?>
 <article>
 	<p>
-		<a href="?action=aimant_change"><button><?lua 
-				(function ()
-					if (gpio.read(1)==gpio.HIGH) then
-						return "Aimant Activé"
-					else
-						return "Aimant Off"
-					end
-				end)()?></button></a>
-		<a href="?action=go"><button <?lua get_go_disable() ?>>Go!</button></a>
-	</p>
-	<p>
 		<div <?lua get_result_disable() ?>>
 			<p>
 				<div id="Graphe_resultats" style="width: 900px; height: 500px"></div>

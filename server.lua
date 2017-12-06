@@ -38,6 +38,7 @@ do
 			return  string.gsub(txt,"§[^§²]*²",function(cmd)
                     cmd = string.gsub(cmd, "§","")
                     cmd = string.gsub(cmd, "²","")
+					print("CMD : ",cmd)
                     return loadstring("return " .. cmd)()
                 end)
         end
@@ -123,10 +124,10 @@ do
 	--Find page to send
 	--Send response
 	function http_response(sck, request)
-		print("Request receive : ")
-		print("BEGIN")
-		print(request)
-		print("END")
+		--print("Request receive : ")
+		--print("BEGIN")
+		--print(request)
+		--print("END")
 		--Parse la requete http
 		local _, _, method, path, vars = string.find(request, "([A-Z]+) (.+)?(.+) HTTP")
 		if (method == nil) then

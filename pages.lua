@@ -37,7 +37,7 @@ server.http_pages['/'] = function (method, path, _GET)
         return server.read_file("index.html")
     end
 
-server.http_pages['/pcchrono.html'] = function (method, path, _GET)
+server.http_pages['/acquisition.html'] = function (method, path, _GET)
 		if _GET["action"]=='aimant_change' then
             if (gpio.read(pcchrono.aimant.pin)==gpio.HIGH) then
                 gpio.write(pcchrono.aimant.pin,gpio.LOW)
@@ -47,15 +47,16 @@ server.http_pages['/pcchrono.html'] = function (method, path, _GET)
         elseif _GET["action"]=='go' then
 			if not pcchrono.run then
 				_dofile("lecture_capteurs")
+				return server.read_file("resultats.html")
 			end
 		elseif _GET["action"]=='raz' then
 			pcchrono.results={}
 		end
-        return server.read_file("pcchrono.html")
+        return server.read_file("acquisition.html")
     end
 
 	
-server.http_pages['/distances.html'] = function (method, path, _GET)
+server.http_pages['/donnees_experience.html'] = function (method, path, _GET)
 	if _GET["diametre_bille"] then
 		pcchrono.aimant.diam = tonumber(_GET["diametre_bille"])
 		for k, fourche in pairs(pcchrono.fourches) do
@@ -65,5 +66,5 @@ server.http_pages['/distances.html'] = function (method, path, _GET)
 		f_pcchrono.writeline(sjson.encode(pcchrono))
 		f_pcchrono.close()
 	end
-	return server.read_file("distances.html")
+	return server.read_file("donnees_experience.html")
 end

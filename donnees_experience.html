@@ -1,0 +1,64 @@
+<?lua server.read_file("head.html")?>
+<article>
+	<form method="post" >
+		<h1>Données de l'expérience
+		</h1>
+		<em>Veuillez saisir ici les paramètres de l'expérience.
+		</em>
+		<div>
+			<p>
+				<label for="diametre_bille">Diamètre de la bille</label>
+				<input type = "text" id="diametre_bille" name="diametre_bille" size = "5" value = "<?lua (function() return pcchrono.bille.diam end)()?>"/>
+				mm
+			</p>
+			<p>
+				<label for="masse_bille">Masse de la bille</label>
+				<input type = "text" id="masse_bille" name="masse_bille" size = "5" value = "<?lua (function() return pcchrono.bille.masse end)()?>"/>
+				grammes
+			</p>
+		</div>
+		<p>
+			Distance entre le haut de la bille (= bas de l'aimant) et les cellules :
+		</p>
+		<p>
+			<label for="cellule_1">Cellule 1 : </label>
+			<input type = "text" id="cellule_1" name="cellule_1" size = "5" value = "<?lua (function() return pcchrono.fourches[1].d end)()?>"/>
+			cm
+			- Etat : <?lua get_status(1)?>
+		</p>
+		<p>
+			<label for="cellule_2">Cellule 2 : </label>
+			<input type = "text" id="cellule_2" name="cellule_2" size = "5" value = "<?lua (function() return pcchrono.fourches[2].d end)()?>"/>
+			cm
+			- Etat : <?lua get_status(2)?>
+		</p>
+		<p>
+			<label for="cellule_3">Cellule 3 : </label>
+			<input type = "text" id="cellule_3" name="cellule_3" size = "5" value = "<?lua (function() return pcchrono.fourches[3].d end)()?>"/>
+			cm
+			- Etat : <?lua get_status(3)?>
+		</p>
+		<p>
+			<label for="cellule_4">Cellule 4 : </label>
+			<input type = "text" id="cellule_4" name="cellule_4" size = "5" value = "<?lua (function() return pcchrono.fourches[4].d end)()?>"/>
+			cm
+			- Etat : <?lua get_status(4)?>
+		</p>
+		<p>
+			<label for="cellule_5">Cellule 5 : </label>
+			<input type = "text" id="cellule_5" name="cellule_5" size = "5" value = "<?lua (function() return pcchrono.fourches[5].d end)()?>"/>
+			cm
+			- Etat : <?lua get_status(5)?>
+		</p>
+		<p>
+			<label for="cellule_6">Cellule 6 : </label>
+			<input type = "text" id="cellule_6" name="cellule_6" size = "5" value = "<?lua (function() return pcchrono.fourches[6].d end)()?>"/>
+			cm
+			- Etat : <?lua get_status(6)?>
+		</p>
+		<p>
+			<input type="submit" value="Mise à jour" />
+		</p>
+	</form>
+</article>
+<?lua server.read_file("foot.html")?>

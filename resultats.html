@@ -1,0 +1,40 @@
+<?lua server.read_file("head.html")?>
+<article>
+	<h1>Résultats des mesures
+	</h1>
+	<p>
+		<div 
+			<p>
+				<table>
+					<tr>
+						<th>z (cm)</th>
+						<th>t (ms)</th>
+						<th>v (m/s)</th>
+					</tr>
+					<?lua (function()
+								local txt = ""
+								for k, fourche in pairs(pcchrono.fourches) do
+									txt = txt .. "<tr><td>" .. fourche.d .. "</td>"
+									print(k,pcchrono.results[k])
+									if pcchrono.results[k] and pcchrono.results[k].on and pcchrono.results[k].off then
+										print(sjson.encode(pcchrono.results[k]))
+										txt = txt .. "<td>" .. pcchrono.results[k].on/1000 .. "</td>"
+										txt = txt .. "<td>" .. pcchrono.bille.diam/(pcchrono.results[k].off - pcchrono.results[k].on) .. "</td></tr>"
+									else
+										txt = txt .. "<td>pas de mesure</td><td>???</td>"
+									end
+								end
+								return txt
+							end)()?>
+				</table>
+			</p>
+
+			<p>
+				<a href="?action=raz"><button >RAZ</button></a>
+			</p>
+		</div>
+	</p>
+</p>
+</article>
+
+<?lua server.read_file("foot.html")?>

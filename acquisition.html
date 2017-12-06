@@ -1,0 +1,43 @@
+<?lua server.read_file("head.html")?>
+<article>
+	<p>
+		<a href="?action=aimant_change"><button><?lua 
+				(function ()
+					if (gpio.read(pcchrono.aimant.pin)==gpio.HIGH) then
+						return "Aimant Activé"
+					else
+						return "Aimant Off"
+					end
+				end)()?></button></a>
+	</p>
+	<p>
+		<table>
+			<tr>
+				<th>Cellule</th>
+				<th>Etat</th>
+			</tr>
+			<?lua (function()
+						local txt = ""
+						for k, fourche in pairs(pcchrono.fourches) do
+							txt = txt .."<tr><td> fourche no"..k.."</td><td>"..get_status(k).."</td></tr>"
+						end
+						return txt
+					end)()?>
+		</table>
+	</p>
+	<p>
+		<a href="?action=go"><button <? (function ()
+											if (gpio.read(pcchrono.aimant.pin)==gpio.HIGH) then
+												return ""
+											else
+												return "disabled"
+											end
+										end)() ?>>Go!</button></a>
+	</p>
+	<p>
+		<input type="button" onclick='window.location.reload(false)' value="Rafraichir"/>
+	</p>
+</p>
+</article>
+
+<?lua server.read_file("foot.html")?>

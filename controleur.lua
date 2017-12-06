@@ -26,13 +26,6 @@ end
     -- end
 -- end
 
-function get_go_disable()
-	if (gpio.read(1)==gpio.HIGH) then
-		return ""
-	else
-		return "disabled"
-	end
-end
 
 function get_result_disable()
 		if pcchrono.results[1]==nil then
@@ -42,6 +35,7 @@ function get_result_disable()
 		end
 end
 
+
 function get_results()
 		if pcchrono.run then
 			return "en cours"
@@ -50,10 +44,10 @@ function get_results()
 		end
 end
 
-function get_distance(no_fourche)
-	if no_fourche==0 then
-		return pcchrono.aimant.diam
+function get_status(no_fourche)
+	if gpio.read(pcchrono.fourches[no_fourche].pin)==gpio.HIGH then
+		return "Ok"
 	else
-		return pcchrono.fourches[no_fourche].d
+		return "Off"
 	end
 end
