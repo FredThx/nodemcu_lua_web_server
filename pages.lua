@@ -21,7 +21,8 @@ server.http_pages['/params.html'] = function (method, path, _GET)
         for k,v in pairs(_GET) do
             server.params[k]=v
         end
-        _dofile("set_params")
+        --_dofile("set_params")
+		server.save_params()
         node.restart()
     end
     return server.read_file("params.html")

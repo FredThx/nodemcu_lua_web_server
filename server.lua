@@ -38,33 +38,31 @@ do
 			return  string.gsub(txt,"§[^§²]*²",function(cmd)
                     cmd = string.gsub(cmd, "§","")
                     cmd = string.gsub(cmd, "²","")
-					print("CMD : ",cmd)
-                    return loadstring("return " .. cmd)()
+                    return loadstring("return " .. cmd)() -- TODO gerer erreur et renvoyer texte erreur
                 end)
         end
     end
     M.read_file = read_file
     M.http_pages = {}
-    M.params = {}
+	M.params = {}
+	local function save_params()
+		local f_params = file.open("params.json","w")
+		f_params:write(sjson.encode(M.params))
+		f_params:write('\r\n')
+		f_params:close()
+	end
+	M.save_params = save_params
     -- Lecture des paramètres
-    local f_params = file.open("params.cfg","r")
+    local f_params = file.open("params.json","r")
     if f_params then
-        local line, k, v
-        repeat
-            line = f_params.readline()
-            if line then
-                v = string.match(line,":.*[^\n]")
-                if v then 
-                    v = v:match("[^ :].*")
-                end
-                k = string.match(line,".*:")
-                if k then 
-                    k = k:match(".*[^ :]")
-                    M.params[k]=v
-                end
-            end
-        until line == nill
-        f_params.close()
+		if pcall(function() 
+					M.params = sjson.decode(f_params:read(2*1024)) 
+				end) then -- limite a 2*1024 bytes
+			print("lecture parametres du serveur :", sjson.encode(M.params))
+		else
+			print("Error reading params.json") 
+		end
+        f_params:close()
     end
     if not M.params["wifi_mode"] then M.params["wifi_mode"]="ap" end
     if not M.params["wifi_ssid"] then M.params["wifi_ssid"]=defaut.ssid end
@@ -102,21 +100,29 @@ do
             if srv then
               srv:listen(80, function(conn)
                 conn:on("receive", function(sck, request)
+						--sck.hold()
+						print("http requeste receive.")
 						if M.buffer == nil then
 							M.buffer = request
 						else
 							M.buffer = M.buffer .. request
 						end
-						if string.find(M.buffer, '\r\n\r\n') then
-							--sck.hold()
+						-- A opimiser en une seule ligne
+						if string.find(M.buffer, 'GET.*\r\n\r\n') 
+							or string.find(M.buffer, 'POST.*\r\n.*\r\n') 
+						then
 							http_response(sck,M.buffer)
 							M.buffer = ""
-							--sck.unhold()
+							print("buffer cleared.")
+						else
+							print("http request buffered.")
 						end
+						--sck.unhold()
 					end)
 				end)
             end
-        end
+			print("http server is active.")
+		end
     end)
 	
 	--Lecture de la requette http
@@ -143,9 +149,7 @@ do
 				_GET[k] = v
 			end
 		end
-		print("Method :", method)
-		print("Path : ", path)
-		print("Vars : ", vars)
+		print("Method :", method, "Path : ", path, "Vars : ", vars)
 		if method and path then
 			--Selon http_pages[path], renvoie la reponse
 			local response, status
@@ -155,6 +159,7 @@ do
 			else -- Si pas reference, essaye quand meme de charger la page
 				print("Read unrecorded file :", path)
 				response = M.read_file(string.sub(path,2))
+				print(node.heap())
 				if response then
 					status = "200 OK"
 				else
@@ -162,8 +167,8 @@ do
 					status = "404 Not Found"
 				end
 			end
-			--print("Send http response...")
-			sck:send("HTTP/1.1 " .. status .. "\r\nConnection: keep-alive\r\nCache-Control: private, no-store\r\nContent-Length: " .. string.len(response) .. "\r\n\r\n" ..response
+			print("Send http response...")
+			sck:send("HTTP/1.1 " .. status .. "\r\nConnection: keep-alive\r\nCache-Control: private, no-store\r\nContent-Length: " .. #response .. "\r\n\r\n" .. response
 					, function(sk)
 					sk:close()
 				  end)
