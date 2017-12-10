@@ -26,7 +26,10 @@ local defaut = {
     dhcp_start = "192.168.68.10"
 }
 do
-    -- Read a file and execute lua code in <?lua ... >?>
+	M.http_pages = {}
+	M.params = {}
+	
+	-- Read a file and execute lua code in <?lua ... >?>
 	-- attention un peu de bricolage lie au limitation des pattern en lua
 	-- les caracteres § et ² sont interdit dans les pages html !!!!
     local function read_file(filename)
@@ -43,15 +46,17 @@ do
         end
     end
     M.read_file = read_file
-    M.http_pages = {}
-	M.params = {}
-	local function save_params()
-		local f_params = file.open("params.json","w")
-		f_params:write(sjson.encode(M.params))
-		f_params:write('\r\n')
-		f_params:close()
-	end
-	M.save_params = save_params
+	
+	-- local function splitByChunk(text, chunkSize)
+		-- local s = {}
+		-- for i=1, #text, chunkSize do
+			-- s[#s+1] = text:sub(i,i+chunkSize - 1)
+		-- end
+		-- return s
+	-- end
+	-- M.splitByChunk = splitByChunk
+	
+
     -- Lecture des paramètres
     local f_params = file.open("params.json","r")
     if f_params then
@@ -100,24 +105,24 @@ do
             if srv then
               srv:listen(80, function(conn)
                 conn:on("receive", function(sck, request)
-						--sck.hold()
+						sck:hold()
+						print("====>",sck, "hold")
 						print("http requeste receive.")
 						if M.buffer == nil then
-							M.buffer = request
+							M.buffer = {request} -- ruse pour passer un string par reference
 						else
-							M.buffer = M.buffer .. request
+							M.buffer[1] = M.buffer[1] .. request
 						end
 						-- A opimiser en une seule ligne
-						if string.find(M.buffer, 'GET.*\r\n\r\n') 
-							or string.find(M.buffer, 'POST.*\r\n.*\r\n') 
+						if string.find(M.buffer[1], 'GET.*\r\n\r\n') 
+							or string.find(M.buffer[1], 'POST.*\r\n.*\r\n') 
 						then
 							http_response(sck,M.buffer)
-							M.buffer = ""
+							M.buffer = nil
 							print("buffer cleared.")
 						else
 							print("http request buffered.")
 						end
-						--sck.unhold()
 					end)
 				end)
             end
@@ -130,17 +135,17 @@ do
 	--Find page to send
 	--Send response
 	function http_response(sck, request)
-		--print("Request receive : ")
-		--print("BEGIN")
-		--print(request)
-		--print("END")
+		print("Request receive : ")
+		print("BEGIN")
+		print(request[1])
+		print("END")
 		--Parse la requete http
-		local _, _, method, path, vars = string.find(request, "([A-Z]+) (.+)?(.+) HTTP")
+		local _, _, method, path, vars = string.find(request[1], "([A-Z]+) (.+)?(.+) HTTP")
 		if (method == nil) then
-			_, _, method, path = string.find(request, "([A-Z]+) (.+) HTTP")
+			_, _, method, path = string.find(request[1], "([A-Z]+) (.+) HTTP")
 		end
 		if method == "POST" then
-			vars = string.sub(string.match(request,"\r\n\r\n.*"),5)
+			vars = string.sub(string.match(request[1],"\r\n\r\n.*"),5)
 		end
 		local _GET = {}
 		if vars then
@@ -151,29 +156,45 @@ do
 		end
 		print("Method :", method, "Path : ", path, "Vars : ", vars)
 		if method and path then
-			--Selon http_pages[path], renvoie la reponse
-			local response, status
-			if M.http_pages[path] then
-				response = M.http_pages[path](method, path, _GET)
-				status = "200 OK"
-			else -- Si pas reference, essaye quand meme de charger la page
-				print("Read unrecorded file :", path)
-				response = M.read_file(string.sub(path,2))
-				print(node.heap())
-				if response then
-					status = "200 OK"
-				else
-					response = "<html><body><p>" .. path .. " doesn't exist.</p></body></html>"
+			do
+				local response
+				status="200 OK"
+				if M.http_pages[path] then -- page referencee
+					response = M.http_pages[path](method, path, _GET)
+				elseif file.exists(string.sub(path,2)) then -- page non reference mais existante
+					response = M.read_file(string.sub(path,2))
+				else -- pas inexistante
 					status = "404 Not Found"
+					response = "<html><body><p>" .. path .. " doesn't exist.</p></body></html>"
+				end
+				-- pour economiser de la memoire : reponse stockee dans fichier
+				local f_response = file.open("response.txt","w")
+				f_response:write("HTTP/1.1 " .. status .. "\r\nConnection: keep-alive\r\nCache-Control: private, no-store\r\nContent-Length: " .. #response .. "\r\n\r\n")
+				f_response:write(response)
+				f_response:close()
+				--print("heap : ", node.heap())
+			end
+			--collectgarbage()
+			local f_response = file.open("response.txt","r")
+			local chunk
+			print("heap : ", node.heap())
+			print("Envoie resultat...")
+			local function send_chunk(sk) --todo mettre fonction ailleurs
+				chunk = f_response:read(1024)
+				if chunk then
+					print("chunk of",#chunk,"heap :",node.heap())
+					sk:send(chunk, send_chunk)
+				else
+					print("All chunks sent")
+					sk:close()
+					f_response:close()
+					--collectgarbage()
+					print(sk, "unhold")
+					sk:unhold()
 				end
 			end
-			print("Send http response...")
-			sck:send("HTTP/1.1 " .. status .. "\r\nConnection: keep-alive\r\nCache-Control: private, no-store\r\nContent-Length: " .. #response .. "\r\n\r\n" .. response
-					, function(sk)
-					sk:close()
-				  end)
+			send_chunk(sck)
 		end
-		collectgarbage()
 	end
 end
 return M
