@@ -25,7 +25,7 @@ local defaut = {
     mask = "255.255.255.0",
     dhcp_start = "192.168.68.10"
 }
-local response_chunk_size = 1024 
+local response_chunk_size = 1024
 
 
 do
@@ -39,7 +39,7 @@ do
         if file.open(filename, "r") then
 			local txt = file.read(1024*5) -- TODO : lecture bloc par bloc (au moins les non html)
 			file.close()
-			if string.find(filename, ".*%.html") then
+			--if string.find(filename, ".*%.html") then
 				txt = string.gsub(txt,"<%?lua","§")
 				txt = string.gsub(txt,"?>","²")
 				return  string.gsub(txt,"§[^§²]*²",function(cmd)
@@ -47,9 +47,9 @@ do
 						cmd = string.gsub(cmd, "²","")
 						return loadstring("return " .. cmd)() -- TODO gerer erreur et renvoyer texte erreur
 					end)
-			else
-				return txt
-			end
+			--else
+			--	return txt
+			--end
         end
     end
     M.read_file = read_file
@@ -105,7 +105,7 @@ do
               srv:listen(80, function(conn)
                 conn:on("receive", function(sck, request)
 						sck:hold()
-						print("http requeste receive.",sck, "hold")
+						--print("http requeste receive.",sck, "hold")
 						if M.buffer == nil then
 							M.buffer = {request} -- ruse pour passer un string par reference
 						else
@@ -153,7 +153,7 @@ do
 				_GET[k] = v
 			end
 		end
-		print(sck, "Method :", method, "Path : ", path, "Vars : ", vars)
+		--print(sck, "Method :", method, "Path : ", path, "Vars : ", vars)
 		if method and path then
 			local responses = {}
 			do
@@ -177,14 +177,16 @@ do
 				if #responses > 0 then
 					chunk = responses[1]
 					table.remove(responses,1)
-					print(sk, "chunk of",#chunk,"heap :",node.heap())
+					--print(sk, "chunk of",#chunk,"heap :",node.heap())
 					sk:send(chunk, send_chunk)
 				else
 					sk:close()
+					--collectgarbage()
 				end
 			end
 			send_chunk(sck)
 		end
+		collectgarbage()
 	end
 end
 return M
