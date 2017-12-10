@@ -124,7 +124,6 @@ do
 			print("http server is active.")
 		end
     end)
-	
 	--Lecture de la requette http
 	--Parse
 	--Find page to send
