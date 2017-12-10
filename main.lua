@@ -17,7 +17,6 @@ if file.open("pcchrono.cfg", "r") then
 	local txt = file.read()
 	print("read pcchrono.cfg : " .. txt)
 	local ok, json = pcall(sjson.decode, txt)
-	print("decode : ",ok)
 	if ok then pcchrono = json end
 end
 if not pcchrono then

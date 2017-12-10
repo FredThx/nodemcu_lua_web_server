@@ -25,6 +25,9 @@ local defaut = {
     mask = "255.255.255.0",
     dhcp_start = "192.168.68.10"
 }
+local response_chunk_size = 1024
+
+
 do
 	M.http_pages = {}
 	M.params = {}
@@ -34,27 +37,23 @@ do
 	-- les caracteres § et ² sont interdit dans les pages html !!!!
     local function read_file(filename)
         if file.open(filename, "r") then
-			local txt = file.read(1024*5)
+			local txt = file.read(1024*5) -- TODO : lecture bloc par bloc (au moins les non html)
 			file.close()
-			txt = string.gsub(txt,"<%?lua","§")
-			txt = string.gsub(txt,"?>","²")
-			return  string.gsub(txt,"§[^§²]*²",function(cmd)
-                    cmd = string.gsub(cmd, "§","")
-                    cmd = string.gsub(cmd, "²","")
-                    return loadstring("return " .. cmd)() -- TODO gerer erreur et renvoyer texte erreur
-                end)
+			--if string.find(filename, ".*%.html") then
+				txt = string.gsub(txt,"<%?lua","§")
+				txt = string.gsub(txt,"?>","²")
+				return  string.gsub(txt,"§[^§²]*²",function(cmd)
+						cmd = string.gsub(cmd, "§","")
+						cmd = string.gsub(cmd, "²","")
+						return loadstring("return " .. cmd)() -- TODO gerer erreur et renvoyer texte erreur
+					end)
+			--else
+			--	return txt
+			--end
         end
     end
     M.read_file = read_file
-	
-	-- local function splitByChunk(text, chunkSize)
-		-- local s = {}
-		-- for i=1, #text, chunkSize do
-			-- s[#s+1] = text:sub(i,i+chunkSize - 1)
-		-- end
-		-- return s
-	-- end
-	-- M.splitByChunk = splitByChunk
+
 	
 
     -- Lecture des paramètres
@@ -106,8 +105,7 @@ do
               srv:listen(80, function(conn)
                 conn:on("receive", function(sck, request)
 						sck:hold()
-						print("====>",sck, "hold")
-						print("http requeste receive.")
+						--print("http requeste receive.",sck, "hold")
 						if M.buffer == nil then
 							M.buffer = {request} -- ruse pour passer un string par reference
 						else
@@ -123,6 +121,7 @@ do
 						else
 							print("http request buffered.")
 						end
+						sck:unhold()
 					end)
 				end)
             end
@@ -134,10 +133,10 @@ do
 	--Find page to send
 	--Send response
 	function http_response(sck, request)
-		print("Request receive : ")
-		print("BEGIN")
-		print(request[1])
-		print("END")
+		--print("Request receive : ")
+		--print("BEGIN")
+		--print(request[1])
+		--print("END")
 		--Parse la requete http
 		local _, _, method, path, vars = string.find(request[1], "([A-Z]+) (.+)?(.+) HTTP")
 		if (method == nil) then
@@ -153,8 +152,9 @@ do
 				_GET[k] = v
 			end
 		end
-		print("Method :", method, "Path : ", path, "Vars : ", vars)
+		--print(sck, "Method :", method, "Path : ", path, "Vars : ", vars)
 		if method and path then
+			local responses = {}
 			do
 				local response
 				status="200 OK"
@@ -166,34 +166,26 @@ do
 					status = "404 Not Found"
 					response = "<html><body><p>" .. path .. " doesn't exist.</p></body></html>"
 				end
-				-- pour economiser de la memoire : reponse stockee dans fichier
-				local f_response = file.open("response.txt","w")
-				f_response:write("HTTP/1.1 " .. status .. "\r\nConnection: keep-alive\r\nCache-Control: private, no-store\r\nContent-Length: " .. #response .. "\r\n\r\n")
-				f_response:write(response)
-				f_response:close()
-				--print("heap : ", node.heap())
+				response = "HTTP/1.1 " .. status .. "\r\nConnection: keep-alive\r\nCache-Control: private, no-store\r\nContent-Length: " .. #response .. "\r\n\r\n" .. response
+				for i=1, #response, response_chunk_size do
+					responses[#responses+1] = response:sub(i,i + response_chunk_size - 1)
+				end
 			end
-			--collectgarbage()
-			local f_response = file.open("response.txt","r")
-			local chunk
-			print("heap : ", node.heap())
-			print("Envoie resultat...")
 			local function send_chunk(sk) --todo mettre fonction ailleurs
-				chunk = f_response:read(1024)
-				if chunk then
-					print("chunk of",#chunk,"heap :",node.heap())
+				local chunk
+				if #responses > 0 then
+					chunk = responses[1]
+					table.remove(responses,1)
+					--print(sk, "chunk of",#chunk,"heap :",node.heap())
 					sk:send(chunk, send_chunk)
 				else
-					print("All chunks sent")
 					sk:close()
-					f_response:close()
 					--collectgarbage()
-					print(sk, "unhold")
-					sk:unhold()
 				end
 			end
 			send_chunk(sck)
 		end
+		collectgarbage()
 	end
 end
 return M
