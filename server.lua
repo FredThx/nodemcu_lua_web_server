@@ -25,27 +25,31 @@ local defaut = {
     mask = "255.255.255.0",
     dhcp_start = "192.168.68.10"
 }
-local response_chunk_size = 1024
+local response_chunk_size = 1024*2
 
 
 do
 	M.http_pages = {}
 	M.params = {}
-	
+	M.buffer = {}
 	-- Read a file and execute lua code in <?lua ... >?>
 	-- attention un peu de bricolage lie au limitation des pattern en lua
 	-- les caracteres § et ² sont interdit dans les pages html !!!!
     local function read_file(filename)
-        if file.open(filename, "r") then
-			local txt = file.read(1024*5) -- TODO : lecture bloc par bloc (au moins les non html)
-			file.close()
-			--if string.find(filename, ".*%.html") then
+		local fichier = file.open(filename, "r")
+        if  fichier then
+			local txt = fichier:read(1024*5) -- TODO : lecture bloc par bloc (au moins les non html)
+			fichier:close()
+			--if string.find(filename, ".*%.html") then  -- en fait ce que ça fait gagner, on le perd a augmenter le poids de cette fonction
 				txt = string.gsub(txt,"<%?lua","§")
 				txt = string.gsub(txt,"?>","²")
 				return  string.gsub(txt,"§[^§²]*²",function(cmd)
 						cmd = string.gsub(cmd, "§","")
 						cmd = string.gsub(cmd, "²","")
-						return loadstring("return " .. cmd)() -- TODO gerer erreur et renvoyer texte erreur
+						--print(node.heap(),cmd)
+						local err, val = pcall(loadstring("return " .. cmd))
+						--print(node.heap(),val)
+						return val
 					end)
 			--else
 			--	return txt
@@ -104,22 +108,104 @@ do
             if srv then
               srv:listen(80, function(conn)
                 conn:on("receive", function(sck, request)
+						------------------------------------------
+						-- A LA RECEPTION DE DONNES --------------
+						------------------------------------------
 						sck:hold()
 						--print("http requeste receive.",sck, "hold")
-						if M.buffer == nil then
-							M.buffer = {request} -- ruse pour passer un string par reference
+						------------------------------------------
+						-- ON COMMENCE PAS VERIFIER QUE L ON A ---
+						-- BIEN TOUT LE REQUETE SINON BUFFER -----
+						------------------------------------------
+						if M.buffer[sck] then
+							M.buffer[sck] = M.buffer[sck] .. request
 						else
-							M.buffer[1] = M.buffer[1] .. request
+							M.buffer[sck] = request
 						end
-						-- A opimiser en une seule ligne
-						if string.find(M.buffer[1], 'GET.*\r\n\r\n') 
-							or string.find(M.buffer[1], 'POST.*\r\n.*\r\n') 
+						if string.find(M.buffer[sck], 'GET.*\r\n\r\n') 
+							or string.find(M.buffer[sck], 'POST.*\r\n.*\r\n') 
 						then
-							http_response(sck,M.buffer)
-							M.buffer = nil
-							print("buffer cleared.")
-						else
-							print("http request buffered.")
+							------------------------------------------
+							-- SI LA REQUETTE EST COMPLETE -----------
+							------------------------------------------
+							--print("Request receive : ")
+							--print("BEGIN")
+							--print(M.buffer[sck])
+							--print("END")
+							---------------------------------------------
+							-- PARSE LA REQUETTE => METHOD, PATH, VARS --
+							---------------------------------------------
+							local _, _, method, path, vars = string.find(M.buffer[sck], "([A-Z]+) (.+)?(.+) HTTP")
+							if (method == nil) then
+								_, _, method, path = string.find(M.buffer[sck], "([A-Z]+) (.+) HTTP")
+							end
+							if method == "POST" then
+								vars = string.sub(string.match(M.buffer[sck],"\r\n\r\n.*"),5)
+							end
+							local _GET = {}
+							if vars then
+								for k, v in string.gmatch(vars, "([%w_]+)=([%w_]+)&*") do
+									_GET[k] = v
+								end
+							end
+							print(sck, node.heap(), "Method :", method, "Path : ", path, "Vars : ", vars)
+							if method and path then
+								------------------------------------------
+								-- SI LA REQUETTE EST VALIDE : -----------
+								--                  ... REPONSE ----------
+								------------------------------------------
+								local responses = {}
+								local response 
+								local status="200 OK"
+								------------------------------------------
+								-- SELON pages.lua et fichiers -----------
+								--     => REPONSE              -----------
+								------------------------------------------
+								if M.http_pages[path] then -- page referencee
+									response = M.http_pages[path](method, path, _GET)
+								elseif file.exists(string.sub(path,2)) then -- page non reference mais existante
+									response = M.read_file(string.sub(path,2))
+								else -- pas inexistante
+									status = "404 Not Found"
+									response = "<html><body><p>" .. path .. " doesn't exist.</p></body></html>"
+								end
+								collectgarbage()
+								print(sck, "****",node.heap())
+								responses[1]="HTTP/1.1 " .. status .. "\r\nConnection: keep-alive\r\nCache-Control: private, no-store\r\nContent-Length: " .. #response .. "\r\n\r\n"
+								print(sck, "response prepared",node.heap())
+								------------------------------------------
+								-- ON COUPE LA REPONSE EN BOUTS  ---------
+								------------------------------------------
+								responses[1]=responses[1]..response:sub(1,response_chunk_size-#responses[1])
+								for i=#responses[1]+1, #response, response_chunk_size do
+									responses[#responses+1] = response:sub(i,i + response_chunk_size - 1)
+								end
+								response = nil
+								--print(sjson.encode(responses))
+								collectgarbage()
+								print(sck, "responses chunked",node.heap())
+								------------------------------------------
+								-- FONCTION RECURSIVE QUI FAIT LES SEND --
+								------------------------------------------
+								local function send_chunk(sk) --todo mettre fonction ailleurs
+									local chunk
+									if #responses > 0 then
+										chunk = responses[1]
+										table.remove(responses,1)
+										print(sk, "chunk of",#chunk,"heap :",node.heap())
+										sk:send(chunk, send_chunk)
+									else
+										sk:close()
+										--collectgarbage()
+									end
+								end
+								send_chunk(sck)
+							end
+							collectgarbage()
+							M.buffer[sck] = nil
+							--print("buffer cleared.")
+						--else
+							--print("http request buffered.")
 						end
 						sck:unhold()
 					end)
@@ -128,64 +214,5 @@ do
 			print("http server is active.")
 		end
     end)
-	--Lecture de la requette http
-	--Parse
-	--Find page to send
-	--Send response
-	function http_response(sck, request)
-		--print("Request receive : ")
-		--print("BEGIN")
-		--print(request[1])
-		--print("END")
-		--Parse la requete http
-		local _, _, method, path, vars = string.find(request[1], "([A-Z]+) (.+)?(.+) HTTP")
-		if (method == nil) then
-			_, _, method, path = string.find(request[1], "([A-Z]+) (.+) HTTP")
-		end
-		if method == "POST" then
-			vars = string.sub(string.match(request[1],"\r\n\r\n.*"),5)
-		end
-		local _GET = {}
-		if vars then
-			for k, v in string.gmatch(vars, "([%w_]+)=([%w_]+)&*") do
-				--print(k,v)
-				_GET[k] = v
-			end
-		end
-		--print(sck, "Method :", method, "Path : ", path, "Vars : ", vars)
-		if method and path then
-			local responses = {}
-			do
-				local response
-				status="200 OK"
-				if M.http_pages[path] then -- page referencee
-					response = M.http_pages[path](method, path, _GET)
-				elseif file.exists(string.sub(path,2)) then -- page non reference mais existante
-					response = M.read_file(string.sub(path,2))
-				else -- pas inexistante
-					status = "404 Not Found"
-					response = "<html><body><p>" .. path .. " doesn't exist.</p></body></html>"
-				end
-				response = "HTTP/1.1 " .. status .. "\r\nConnection: keep-alive\r\nCache-Control: private, no-store\r\nContent-Length: " .. #response .. "\r\n\r\n" .. response
-				for i=1, #response, response_chunk_size do
-					responses[#responses+1] = response:sub(i,i + response_chunk_size - 1)
-				end
-			end
-			local function send_chunk(sk) --todo mettre fonction ailleurs
-				local chunk
-				if #responses > 0 then
-					chunk = responses[1]
-					table.remove(responses,1)
-					--print(sk, "chunk of",#chunk,"heap :",node.heap())
-					sk:send(chunk, send_chunk)
-				else
-					sk:close()
-					--collectgarbage()
-				end
-			end
-			send_chunk(sck)
-		end
-		collectgarbage()
-	end
 end
 return M
