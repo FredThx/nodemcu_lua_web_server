@@ -18,10 +18,10 @@
 									print(k,pcchrono.results[k])
 									if pcchrono.results[k] and pcchrono.results[k].on and pcchrono.results[k].off then
 										print(sjson.encode(pcchrono.results[k]))
-										txt = txt .. "<td>" .. pcchrono.results[k].on/1000 .. "</td>"
-										txt = txt .. "<td>" .. pcchrono.bille.diam/(pcchrono.results[k].off - pcchrono.results[k].on) .. "</td></tr>"
+										txt = txt .. "<td>" .. math.floor(pcchrono.results[k].on/1000+0.5) .. "</td>"
+										txt = txt .. "<td>" .. math.floor(1000*pcchrono.bille.diam/(pcchrono.results[k].off - pcchrono.results[k].on)+0.5) .. "</td></tr>"
 									else
-										txt = txt .. "<td>pas de mesure</td><td>???</td>"
+										txt = txt .. "<td>pas de mesure</td><td></td>"
 									end
 								end
 								return txt

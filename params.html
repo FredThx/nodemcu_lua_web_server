@@ -1,24 +1,53 @@
 <?lua server.read_file("head.html")?>
 <article>
-	<h1>Paramètres wifi</h1>
 	<form method="post" action="params.html" autocomplete = "on">
-		<p>Mode de fonctionnement : 
-			<input type="radio" name="wifi_mode" id="mode_sta" value="sta"<?lua get_checked("sta")?>/> <label for "mode_sta">Mode station</label>
-			<input type="radio" name="wifi_mode" id="mode_ap" value="ap"<?lua get_checked("ap")?>/> <label for "mode_ap">Mode Point d'accés</label>
-		</p>
+		<div>
+			<h1>Paramètres wifi</h1>
+			<p>Mode de fonctionnement : 
+				<input type="radio" name="wifi_mode" id="mode_sta" value="sta"<?lua get_checked("sta")?>/> <label for "mode_sta">Mode station</label>
+				<input type="radio" name="wifi_mode" id="mode_ap" value="ap"<?lua get_checked("ap")?>/> <label for "mode_ap">Mode Point d'accés</label>
+			</p>
+			<p>
+				<label for="wifi_ssid">SSID</label>
+				<input type = "text" id="wifi_ssid" name="wifi_ssid" value = "<?lua get_param("wifi_ssid")?>"/>
+			</p>
+			<p>
+				<label for="wifi_pwd">password</label>
+				<input type = "password" id="wifi_pwd" name="wifi_pwd" value = "<?lua get_param("wifi_pwd")?>" pattern = "%w{0,8-64}"/>
+			</p>
+		</div>
+		<div>
+			<h1>Code pour Analyses</h1>
+			<p>
+				<label for="master_code0">Code actuel:</label>
+				<input type = "password" id="master_code0" name="master_code0" value = "" pattern = "%w{0,8-64}"/>
+			</p>
+			<p>
+				<label for="master_code1">Nouveau code</label>
+				<input type = "password" id="master_code1" name="master_code1" value = "" pattern = "%w{0,8-64}"/>
+			</p>
+			<p>
+				<label for="master_code2">Saisissez une seconde fois le nouveau code</label>
+				<input type = "password" id="master_code2" name="master_code2" value = "" pattern = "%w{0,8-64}"/>
+			</p>
+		</div>
+		<div>
+			<h1>Code Administrateur</h1>
+			<p>
+				<label for="admin_code0">Code actuel:</label>
+				<input type = "password" id="admin_code0" name="admin_code0" value = "" pattern = "%w{0,8-64}"/>
+			</p>
+			<p>
+				<label for="admin_code1">Nouveau code</label>
+				<input type = "password" id="admin_code1" name="admin_code1" value = "" pattern = "%w{0,8-64}"/>
+			</p>
+			<p>
+				<label for="admin_code2">Saisissez une seconde fois le nouveau code</label>
+				<input type = "password" id="admin_code2" name="admin_code2" value = "" pattern = "%w{0,8-64}"/>
+			</p>
+		</div>
 		<p>
-			<label for="wifi_ssid">SSID</label>
-			<input type = "text" id="wifi_ssid" name="wifi_ssid" value = "<?lua get_param("wifi_ssid")?>"/>
-		</p>
-		<p>
-			<label for="wifi_pwd">password</label>
-			<input type = "password" id="wifi_pwd" name="wifi_pwd" value = "<?lua get_param("wifi_pwd")?>" pattern = "%w{0,8-64}"/>
-		</p>
-		<p>
-			<input type="submit" value="Envoyer" />
-		</p>
-		<p>
-			Dévérouiller mode résultats : auto ou avec Code .
+			<input type="submit" value="Enregistrer et rebooter" />
 		</p>
 	</form>
 </article>
