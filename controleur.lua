@@ -6,8 +6,8 @@
 -- Auteur : FredThx
 ----------------------------------------------------------------------
 
-function get_checked(mode)
-    if server.params["wifi_mode"]==mode then
+function get_checked(param, value)
+    if param==value then
         return "checked"
     else
         return ""
@@ -51,3 +51,12 @@ function get_status(no_fourche)
 		return "Off"
 	end
 end
+
+function format_float(n)
+	local txt = string.format("%.4f",n)
+	if pcchrono.decimal_separator == "virgule" then
+		txt=txt:gsub("%.",",")
+	end
+	return txt
+end
+	

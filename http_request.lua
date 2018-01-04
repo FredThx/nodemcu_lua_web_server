@@ -56,7 +56,7 @@ then
 	end
 	local _GET = {}
 	if vars then
-		for k, v in string.gmatch(vars, "([%w_]+)=([%w_]+)&*") do
+		for k, v in string.gmatch(vars, "([%w_]+)=([%w_%.]+)&*") do
 			_GET[k] = v
 		end
 	end

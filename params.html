@@ -4,8 +4,8 @@
 		<div>
 			<h1>Paramètres wifi</h1>
 			<p>Mode de fonctionnement : 
-				<input type="radio" name="wifi_mode" id="mode_sta" value="sta"<?lua get_checked("sta")?>/> <label for "mode_sta">Mode station</label>
-				<input type="radio" name="wifi_mode" id="mode_ap" value="ap"<?lua get_checked("ap")?>/> <label for "mode_ap">Mode Point d'accés</label>
+				<input type="radio" name="wifi_mode" id="mode_sta" value="sta"<?lua get_checked(server.params["wifi_mode"],"sta")?>/> <label for "mode_sta">Mode station</label>
+				<input type="radio" name="wifi_mode" id="mode_ap" value="ap"<?lua get_checked(server.params["wifi_mode"],"ap")?>/> <label for "mode_ap">Mode Point d'accés</label>
 			</p>
 			<p>
 				<label for="wifi_ssid">SSID</label>
@@ -15,35 +15,17 @@
 				<label for="wifi_pwd">password</label>
 				<input type = "password" id="wifi_pwd" name="wifi_pwd" value = "<?lua get_param("wifi_pwd")?>" pattern = "%w{0,8-64}"/>
 			</p>
-		</div>
-		<div>
-			<h1>Code pour Analyses</h1>
 			<p>
-				<label for="master_code0">Code actuel:</label>
-				<input type = "password" id="master_code0" name="master_code0" value = "" pattern = "%w{0,8-64}"/>
+				<label for="server_ip">IP SERVER</label>
+				<input type = "text" id="server_ip" name="server_ip" value = "<?lua get_param("server_ip")?>" pattern = "((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$"/>
 			</p>
 			<p>
-				<label for="master_code1">Nouveau code</label>
-				<input type = "password" id="master_code1" name="master_code1" value = "" pattern = "%w{0,8-64}"/>
+				<label for="ip_mask">MASK</label>
+				<input type = "text" id="ip_mask" name="ip_mask" value = "<?lua get_param("ip_mask")?>" pattern = "((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$"/>
 			</p>
 			<p>
-				<label for="master_code2">Saisissez une seconde fois le nouveau code</label>
-				<input type = "password" id="master_code2" name="master_code2" value = "" pattern = "%w{0,8-64}"/>
-			</p>
-		</div>
-		<div>
-			<h1>Code Administrateur</h1>
-			<p>
-				<label for="admin_code0">Code actuel:</label>
-				<input type = "password" id="admin_code0" name="admin_code0" value = "" pattern = "%w{0,8-64}"/>
-			</p>
-			<p>
-				<label for="admin_code1">Nouveau code</label>
-				<input type = "password" id="admin_code1" name="admin_code1" value = "" pattern = "%w{0,8-64}"/>
-			</p>
-			<p>
-				<label for="admin_code2">Saisissez une seconde fois le nouveau code</label>
-				<input type = "password" id="admin_code2" name="admin_code2" value = "" pattern = "%w{0,8-64}"/>
+				<label for="dhcp_start">DHCP start</label>
+				<input type = "text" id="dhcp_start" name="dhcp_start" value = "<?lua get_param("dhcp_start")?>" pattern = "((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$"/>
 			</p>
 		</div>
 		<p>

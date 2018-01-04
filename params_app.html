@@ -1,0 +1,49 @@
+<?lua server.read_file("head.html")?>
+<article>
+	<form method="post" action="params_app.html" autocomplete = "on">
+		<div>
+			<h1> Paramètres </h1>
+			<p>
+				Séparateur décimal :
+				<input type = "radio" name = "decimal_separator" id = "virgule" value = "virgule" <?lua get_checked(pcchrono.decimal_separator,"virgule")?> />
+				<label for "virgule">Virgule</label>
+				<input type = "radio" name = "decimal_separator" id = "point" value = "point" <?lua get_checked(pcchrono.decimal_separator,"point")?> />
+				<label for "point">Point</label>
+			</p>
+		</div>
+		<div>
+			<h1>Code pour Analyses</h1>
+			<p>
+				<label for="master_code0">Code actuel:</label>
+				<input type = "password" id="master_code0" name="master_code0" value = "" pattern = "%w{0,8-64}"/>
+			</p>
+			<p>
+				<label for="master_code1">Nouveau code</label>
+				<input type = "password" id="master_code1" name="master_code1" value = "" pattern = "%w{0,8-64}"/>
+			</p>
+			<p>
+				<label for="master_code2">Saisissez une seconde fois le nouveau code</label>
+				<input type = "password" id="master_code2" name="master_code2" value = "" pattern = "%w{0,8-64}"/>
+			</p>
+		</div>
+		<div>
+			<h1>Code Administrateur</h1>
+			<p>
+				<label for="admin_code0">Code actuel:</label>
+				<input type = "password" id="admin_code0" name="admin_code0" value = "" pattern = "%w{0,8-64}"/>
+			</p>
+			<p>
+				<label for="admin_code1">Nouveau code</label>
+				<input type = "password" id="admin_code1" name="admin_code1" value = "" pattern = "%w{0,8-64}"/>
+			</p>
+			<p>
+				<label for="admin_code2">Saisissez une seconde fois le nouveau code</label>
+				<input type = "password" id="admin_code2" name="admin_code2" value = "" pattern = "%w{0,8-64}"/>
+			</p>
+		</div>
+		<p>
+			<input type="submit" value="Enregistrer" />
+		</p>
+	</form>
+</article>
+<?lua server.read_file("foot.html")?>

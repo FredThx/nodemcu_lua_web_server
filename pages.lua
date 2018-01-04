@@ -23,11 +23,27 @@ server.http_pages['/params.html'] = {
 						server.params[k]=v
 					end
 					_dofile("save_params")
-					node.restart()
+					tmr.alarm(3,1000,tmr.ALARM_SINGLE, node.restart)
 				end
 				return server.read_file("params.html")
 			end,
-	cache = true
+	cache = false
+}
+
+server.http_pages['/params_app.html'] = {
+	http = function (method, path, _GET)
+				if method == "POST" then
+					for k,v in pairs(_GET) do
+						print(k,v)
+						pcchrono[k]=v
+					end
+					local f_pcchrono = file.open("pcchrono.cfg","w")
+					f_pcchrono.writeline(sjson.encode(pcchrono))
+					f_pcchrono.close()
+				end
+				return server.read_file("params_app.html")
+			end,
+	cache = false
 }
 
 server.http_pages['/'] = {
@@ -78,7 +94,7 @@ server.http_pages['/donnees_experience.html'] = {
 				end
 				return server.read_file("donnees_experience.html")
 			end,
-	cache = true
+	cache = false
 }
 server.http_pages['/style.css'] = {
 	cache = true

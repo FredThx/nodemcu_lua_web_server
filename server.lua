@@ -26,7 +26,6 @@ local defaut = {
     dhcp_start = "192.168.68.10"
 }
 
-
 do
 	M.http_pages = {}
 	M.params = {}
@@ -50,7 +49,10 @@ do
     if not M.params["wifi_mode"] then M.params["wifi_mode"]="ap" end
     if not M.params["wifi_ssid"] then M.params["wifi_ssid"]=defaut.ssid end
     if not M.params["wifi_pwd"] then M.params["wifi_pwd"]=defaut.pwd end
-    station_cfg={}
+	if not M.params["server_ip"] then M.params["server_ip"]=defaut.ip end
+    if not M.params["ip_mask"] then M.params["ip_mask"]=defaut.mask end
+	if not M.params["dhcp_start"] then M.params["dhcp_start"]= defaut.dhcp_start end
+	station_cfg={}
     station_cfg.ssid = M.params["wifi_ssid"]
     station_cfg.pwd = M.params["wifi_pwd"]
     -- WIFI configuration
@@ -63,8 +65,8 @@ do
         if not pcall(function() wifi.ap.config(station_cfg) end) then
             wifi.ap.config({ssid=defaut.ssid, pwd=defaut.pwd})
         end
-        wifi.ap.setip({ip=defaut.ip, netmask=defaut.mask, gateway=defaut.ip})
-        wifi.ap.dhcp.config({start = defaut.dhcp_start})
+        wifi.ap.setip({ip=M.params["server_ip"], netmask=M.params["ip_mask"], gateway=M.params["server_ip"]})
+        wifi.ap.dhcp.config({start = M.params["dhcp_start"]})
         wifi.ap.dhcp.start()
     end
     
