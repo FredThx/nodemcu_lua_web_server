@@ -42,7 +42,7 @@ server.http_pages['/acquisition.html'] = {
 					end
 				elseif _GET["action"]=='go' then
 					if not pcchrono.run then
-						_dofile("lecture_capteurs")
+						dofile("lecture_capteurs.lc")
 						return server.read_file("resultats.html", _GET)
 					end
 				elseif _GET["action"]=='raz' then

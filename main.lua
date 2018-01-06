@@ -6,12 +6,10 @@
 ----------------------------------------------------------------------
 -- Auteur : FredThx
 ----------------------------------------------------------------------
-_dofile("compile")
+server = dofile("server.lc")
 
-server = _dofile("server")
-
-_dofile("controleur")
-_dofile("pages")
+dofile("controleur.lc")
+dofile("pages.lc")
 
 --Lecture fichier de config
 if file.open("pcchrono.cfg", "r") then

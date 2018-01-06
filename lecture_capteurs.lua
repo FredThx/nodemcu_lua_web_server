@@ -5,7 +5,7 @@
 -- Lecture des capteurs (= recepteur IR)
 --
 --  Usage :
---              _dofile('lecture_capteurs")
+--              dofile('lecture_capteurs.lc")
 --				remplissage de pcchrono.results
 --  exemple :
 -- pcchrono.results[1] = {on = 1, off = 2}

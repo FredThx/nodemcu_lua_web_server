@@ -5,7 +5,7 @@ if method == "POST" and _GET.wifi_mode then
 			server.params[k]=v
 		end
 	end
-	_dofile("save_params")
+	dofile("save_params.lc")
 	tmr.alarm(3,1000,tmr.ALARM_SINGLE, node.restart)
 end
 return server.read_file("params.html", _GET)
