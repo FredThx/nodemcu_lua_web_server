@@ -1,0 +1,21 @@
+<article>
+	<form method="post" action="<?lua _GET._path ?>" autocomplete = "on">
+		<div>
+			<h1>Autorisation requise :</h1>
+			<p>
+				<label for="code">Code <?lua (function()
+													if string.match(_GET._path,"params.*") then
+														return "Administrateur"
+													else
+														return "Master (pour accés résultats)"
+													end
+												end)() ?>
+														:</label>
+				<input type = "password" id="code" name="code"/>
+			</p>
+		</div>
+		<p>
+			<input type="submit" value="Entrer" />
+		</p>
+	</form>
+</article>

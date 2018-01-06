@@ -15,9 +15,7 @@
 								local txt = ""
 								for k, fourche in pairs(pcchrono.fourches) do
 									txt = txt .. "<tr><td>" .. fourche.d .. "</td>"
-									print(k,pcchrono.results[k])
 									if pcchrono.results[k] and pcchrono.results[k].on and pcchrono.results[k].off then
-										print(sjson.encode(pcchrono.results[k]))
 										txt = txt .. "<td>" .. math.floor(pcchrono.results[k].on/1000+0.5) .. "</td>"
 										txt = txt .. "<td>" .. format_float(1000*pcchrono.bille.diam/(pcchrono.results[k].off - pcchrono.results[k].on)) .. "</td></tr>"
 									else

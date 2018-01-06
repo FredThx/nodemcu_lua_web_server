@@ -54,12 +54,14 @@ then
 	if method == "POST" then
 		vars = string.sub(string.match(server.buffer[sck],"\r\n\r\n.*"),5)
 	end
-	local _GET = {}
+	_GET = {} -- pas local!!! (pas reussi a utiliser setfenv et getfenv dans read_file)
 	if vars then
 		for k, v in string.gmatch(vars, "([%w_]+)=([%w_%.]+)&*") do
 			_GET[k] = v
 		end
 	end
+	_GET._path = path
+	_GET._method = method
 	print(sck, node.heap(), "Method :", method, "Path : ", path, "Vars : ", vars)
 	if method and path then
 		------------------------------------------
@@ -73,21 +75,35 @@ then
 		------------------------------------------
 		-- SELON pages.lua et fichiers -----------
 		--     => REPONSE              -----------
+		--
+		-- la table server.http_pages est mise en mémoire au démarrage
+		-- Si on trouve dedans .http : on execute ce code
+		-- Si on trouve dedans .cache_control : la page est considérée comme static et donc mise en cache par le client web
+		--
+		-- Pour économiser de la mémoire, si le code est important : le mettre dans un fichier nom_page.lua (qui sera compilé en nom_page.lc)
+		--
+		-- Si pas besoin de code : c'est le fichier nom_page.html qui est chargé
 		------------------------------------------
 		if server.http_pages[path] then
-			if server.http_pages[path].http then -- page referencee
-				response = server.http_pages[path].http(method, path, _GET)
+			if server.http_pages[path].http then -- page referencée
+				response = server.http_pages[path].http(method, path)
 			end
 			if server.http_pages[path].cache then
 				cache_control = "public, max-age=90000"
 			end
 		end
 		if not response then
-			if file.exists(string.sub(path,2)) then -- page non reference mais existante
-				response = server.read_file(string.sub(path,2))
-			else -- pas inexistante
-				status = "404 Not Found"
-				response = "<html><body><p>" .. path .. " doesn't exist.</p></body></html>"
+			local filename = string.match(path,"[%a%d_]*").."lc"
+			if file.exists(filename) then -- quand le code est important, vaut mieux le mettre à part : gain mémoire
+				response = assert(loadfile(filename))(method, path)
+			else
+				filename = string.sub(path,2)
+				if file.exists(filename) then -- page non reference mais existante
+					response = server.read_file(filename)
+				else -- pas inexistante
+					status = "404 Not Found"
+					response = "<html><body><p>" .. path .. " doesn't exist.</p></body></html>"
+				end
 			end
 		end
 		collectgarbage()

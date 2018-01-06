@@ -25,7 +25,7 @@ if  fichier then
 			cmd = string.gsub(cmd, "²","")
 			--print(node.heap(),cmd)
 			local err, val = pcall(loadstring("return " .. cmd))
-			--print(node.heap(),val)
+			--print(node.heap(),cmd, val)
 			return val
 		end)
 end
