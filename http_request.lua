@@ -93,7 +93,7 @@ then
 			end
 		end
 		if not response then
-			local filename = string.match(path,"[%a%d_]*").."lc"
+			local filename = string.match(path,"[%a%d_]+")..".lc"
 			if file.exists(filename) then -- quand le code est important, vaut mieux le mettre à part : gain mémoire
 				response = assert(loadfile(filename))(method, path)
 			else

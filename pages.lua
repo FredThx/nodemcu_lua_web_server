@@ -16,6 +16,14 @@
 -- Auteur : FredThx
 ----------------------------------------------------------------------
 
+server.http_pages['/resultats.html'] = {
+	http = function (method, path)
+				if _GET["action"]=='raz' then
+					pcchrono.results={}
+				end
+				return server.read_file("resultat.html")
+			end
+}
 
 
 server.http_pages['/'] = {
@@ -26,7 +34,7 @@ server.http_pages['/'] = {
 				if _GET["action"]=='OFF' then
 					gpio.write(pcchrono.aimant.pin,gpio.LOW)
 				end
-				return server.read_file("index.html", _GET)
+				return server.read_file("index.html")
 			end,
 	cache = true
 }
@@ -43,12 +51,12 @@ server.http_pages['/acquisition.html'] = {
 				elseif _GET["action"]=='go' then
 					if not pcchrono.run then
 						dofile("lecture_capteurs.lc")
-						return server.read_file("resultats.html", _GET)
+						return server.read_file("resultats.html")
 					end
 				elseif _GET["action"]=='raz' then
 					pcchrono.results={}
 				end
-				return server.read_file("acquisition.html", _GET)
+				return server.read_file("acquisition.html")
 			end
 }
 
@@ -63,7 +71,7 @@ server.http_pages['/donnees_experience.html'] = {
 					f_pcchrono.writeline(sjson.encode(pcchrono))
 					f_pcchrono.close()
 				end
-				return server.read_file("donnees_experience.html", _GET)
+				return server.read_file("donnees_experience.html")
 			end
 }
 server.http_pages['/style.css'] = {
